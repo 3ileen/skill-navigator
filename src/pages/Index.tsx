@@ -1,8 +1,10 @@
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
+import JobListings from "@/components/JobListings";
 import JobSelector from "@/components/JobSelector";
 import Dashboard from "@/components/Dashboard";
+import { JobListing } from "@/data/jobListingsData";
 
 type AppState = 'hero' | 'selector' | 'dashboard';
 
@@ -16,9 +18,22 @@ interface Selection {
 const Index = () => {
   const [state, setState] = useState<AppState>('hero');
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [selectedJob, setSelectedJob] = useState<JobListing | null>(null);
 
   const handleGetStarted = () => {
     setState('selector');
+  };
+
+  const handleAnalyzeJob = (job: JobListing) => {
+    // Pre-populate the selection based on the job and go to selector
+    setSelectedJob(job);
+    setSelection({
+      roleId: job.roleId,
+      level: job.level,
+      country: job.region === 'us' ? 'US' : job.region === 'eu' ? 'DE' : job.region === 'latam' ? 'MX' : 'US',
+      hoursPerWeek: 10,
+    });
+    setState('dashboard');
   };
 
   const handleSelect = (sel: Selection) => {
@@ -27,14 +42,20 @@ const Index = () => {
   };
 
   const handleBack = () => {
-    setState('selector');
+    setState('hero');
+    setSelectedJob(null);
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="pt-16">
-        {state === 'hero' && <Hero onGetStarted={handleGetStarted} />}
+        {state === 'hero' && (
+          <>
+            <Hero onGetStarted={handleGetStarted} />
+            <JobListings onAnalyzeJob={handleAnalyzeJob} />
+          </>
+        )}
         {state === 'selector' && <JobSelector onSelect={handleSelect} />}
         {state === 'dashboard' && selection && (
           <Dashboard selection={selection} onBack={handleBack} />
